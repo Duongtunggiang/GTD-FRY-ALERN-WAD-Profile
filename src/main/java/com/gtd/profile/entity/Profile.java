@@ -2,6 +2,7 @@ package com.gtd.profile.entity;
 
 import jakarta.persistence.*;
 
+@Entity
 @Table(name = "Profile")
 public class Profile {
     @Id
