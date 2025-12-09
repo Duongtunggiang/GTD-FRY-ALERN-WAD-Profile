@@ -1,0 +1,5 @@
+# This directory stores uploaded images
+# Avatar images: avatar_{userId}_{timestamp}.{ext}
+# Cover images: cover_{userId}_{timestamp}.{ext}
+# Media images: media_{userId}_{timestamp}.{ext}
+

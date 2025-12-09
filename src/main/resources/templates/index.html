@@ -1,11 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Chủ - Profile System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .hero-section {
+            padding: 100px 0;
+            text-align: center;
+            color: white;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        .cta-buttons {
+            margin-top: 40px;
+        }
+        .btn-custom {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            margin: 10px;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+        .btn-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
 <body>
-<a href="/logout">Logout</a>
-
+    <div class="container">
+        <div class="hero-section">
+            <h1 class="hero-title">Chào mừng đến với Profile System</h1>
+            <p class="hero-subtitle">Nơi bạn có thể tạo và quản lý profile cá nhân của mình</p>
+            
+            <div class="cta-buttons" sec:authorize="!isAuthenticated()">
+                <a href="/login" class="btn btn-light btn-custom">Đăng Nhập</a>
+                <a href="/register" class="btn btn-outline-light btn-custom">Đăng Ký</a>
+            </div>
+            
+            <div class="cta-buttons" sec:authorize="isAuthenticated()">
+                <a href="/profile/my-profile" class="btn btn-light btn-custom">Xem Profile Của Tôi</a>
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-outline-light btn-custom">Đăng Xuất</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

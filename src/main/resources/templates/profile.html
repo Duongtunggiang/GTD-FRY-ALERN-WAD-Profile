@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${profile.fullName} + ' - Profile'">Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .cover-section {
+            position: relative;
+            height: 300px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 100px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .cover-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .avatar-section {
+            position: absolute;
+            bottom: -80px;
+            left: 50px;
+        }
+        
+        .avatar-image {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 5px solid white;
+            object-fit: cover;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .profile-info {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .profile-name {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .profile-nickname {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        
+        .bio-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .typing-text {
+            font-size: 1.1rem;
+            color: #555;
+            min-height: 30px;
+        }
+        
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: var(--primary-color);
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .tabs-container {
+            margin-top: 30px;
+        }
+        
+        .nav-tabs {
+            border-bottom: 3px solid #e9ecef;
+        }
+        
+        .nav-tabs .nav-link {
+            color: #666;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 15px 25px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: transparent;
+        }
+        
+        .tab-content {
+            margin-top: 30px;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .info-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-item i {
+            width: 30px;
+            color: var(--primary-color);
+            margin-right: 15px;
+        }
+        
+        .privacy-badge {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+        }
+        
+        .privacy-public { background: #d4edda; color: #155724; }
+        .privacy-private { background: #fff3cd; color: #856404; }
+        .privacy-hidden { background: #f8d7da; color: #721c24; }
+        
+        .edit-mode {
+            display: none;
+        }
+        
+        .edit-mode.active {
+            display: block;
+        }
+        
+        .view-mode.active {
+            display: block;
+        }
+        
+        .view-mode {
+            display: none;
+        }
+        
+        .btn-edit {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        .upload-btn {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .upload-btn input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <!-- Cover Section -->
+        <div class="cover-section">
+            <img th:src="${profile.coverPath != null ? profile.coverPath : '/images/default-cover.jpg'}" 
+                 alt="Cover" class="cover-image" id="coverImage">
+            <div class="avatar-section">
+                <img th:src="${profile.avatarPath != null ? profile.avatarPath : '/images/default-avatar.png'}" 
+                     alt="Avatar" class="avatar-image" id="avatarImage">
+            </div>
+            <div th:if="${isOwner}" class="btn-edit">
+                <label class="btn btn-light upload-btn">
+                    <i class="fas fa-camera"></i> Đổi ảnh bìa
+                    <input type="file" id="coverFile" accept="image/*" onchange="previewImage(this, 'coverImage')">
+                </label>
+            </div>
+        </div>
+        
+        <!-- Profile Info -->
+        <div class="profile-info">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="profile-name" th:text="${profile.fullName}">Tên Người Dùng</h1>
+                    <p class="profile-nickname" th:if="${profile.nickname}" th:text="'@' + ${profile.nickname}">@nickname</p>
+                </div>
+                <div th:if="${isOwner}">
+                    <button class="btn btn-primary" onclick="toggleEditMode()">
+                        <i class="fas fa-edit"></i> Chỉnh Sửa
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Bio with Typing Animation -->
+            <div class="bio-section" th:if="${profile.bio != null && profile.bioPrivacy == 'PUBLIC'}">
+                <div class="typing-text" id="typingText"></div>
+            </div>
+            
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs tabs-container" id="profileTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#personal" type="button">
+                        <i class="fas fa-user"></i> Trang Cá Nhân
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#education" type="button">
+                        <i class="fas fa-graduation-cap"></i> Học Vấn & Công Việc
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#skills" type="button">
+                        <i class="fas fa-star"></i> Kỹ Năng & Thành Tích
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#media" type="button">
+                        <i class="fas fa-images"></i> Thư Viện
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="profileTabContent">
+                <!-- Personal Tab -->
+                <div class="tab-pane fade show active" id="personal" role="tabpanel">
+                    <div class="view-mode active">
+                        <div class="info-item" th:if="${profile.location != null && profile.locationPrivacy == 'PUBLIC'}">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span th:text="${profile.location}">Vị trí</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.locationPrivacy}">PUBLIC</span>
+                        </div>
+                        <div class="info-item" th:if="${profile.hometown != null && profile.hometownPrivacy == 'PUBLIC'}">
+                            <i class="fas fa-home"></i>
+                            <span th:text="${profile.hometown}">Quê quán</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.hometownPrivacy}">PUBLIC</span>
+                        </div>
+                        <div class="info-item" th:if="${profile.maritalStatus != null && profile.maritalStatusPrivacy == 'PUBLIC'}">
+                            <i class="fas fa-heart"></i>
+                            <span th:text="${profile.maritalStatus}">Tình trạng hôn nhân</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.maritalStatusPrivacy}">PUBLIC</span>
+                        </div>
+                        <div class="info-item" th:if="${profile.languages != null && profile.languagesPrivacy == 'PUBLIC'}">
+                            <i class="fas fa-language"></i>
+                            <span th:text="${profile.languages}">Ngôn ngữ</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.languagesPrivacy}">PUBLIC</span>
+                        </div>
+                    </div>
+                    <div class="edit-mode" th:if="${isOwner}">
+                        <form th:action="@{/profile/update}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" th:field="${profile.id}" name="id">
+                            <div class="mb-3">
+                                <label class="form-label">Họ</label>
+                                <input type="text" class="form-control" th:field="${profile.firstName}" name="firstName">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tên</label>
+                                <input type="text" class="form-control" th:field="${profile.lastName}" name="lastName">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Biệt danh</label>
+                                <input type="text" class="form-control" th:field="${profile.nickname}" name="nickname">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tiểu sử</label>
+                                <textarea class="form-control" th:field="${profile.bio}" name="bio" rows="3"></textarea>
+                                <select class="form-select mt-2" th:field="${profile.bioPrivacy}" name="bioPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Vị trí</label>
+                                <input type="text" class="form-control" th:field="${profile.location}" name="location">
+                                <select class="form-select mt-2" th:field="${profile.locationPrivacy}" name="locationPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Quê quán</label>
+                                <input type="text" class="form-control" th:field="${profile.hometown}" name="hometown">
+                                <select class="form-select mt-2" th:field="${profile.hometownPrivacy}" name="hometownPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tình trạng hôn nhân</label>
+                                <select class="form-select" th:field="${profile.maritalStatus}" name="maritalStatus">
+                                    <option value="">Chọn...</option>
+                                    <option value="Độc thân">Độc thân</option>
+                                    <option value="Đã kết hôn">Đã kết hôn</option>
+                                    <option value="Đang hẹn hò">Đang hẹn hò</option>
+                                </select>
+                                <select class="form-select mt-2" th:field="${profile.maritalStatusPrivacy}" name="maritalStatusPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Ngôn ngữ</label>
+                                <input type="text" class="form-control" th:field="${profile.languages}" name="languages" placeholder="VD: Tiếng Việt, English">
+                                <select class="form-select mt-2" th:field="${profile.languagesPrivacy}" name="languagesPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Ảnh đại diện</label>
+                                <input type="file" class="form-control" name="avatarFile" accept="image/*" onchange="previewImage(this, 'avatarImage')">
+                            </div>
+                            <input type="file" name="coverFile" id="coverFileInput" accept="image/*" style="display: none;">
+                            <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Education & Work Tab -->
+                <div class="tab-pane fade" id="education" role="tabpanel">
+                    <div class="view-mode active">
+                        <div class="info-item" th:if="${profile.school != null && profile.schoolPrivacy == 'PUBLIC'}">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span th:text="${profile.school}">Trường học</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.schoolPrivacy}">PUBLIC</span>
+                        </div>
+                        <div class="info-item" th:if="${profile.workplace != null && profile.workplacePrivacy == 'PUBLIC'}">
+                            <i class="fas fa-briefcase"></i>
+                            <span th:text="${profile.workplace}">Nơi làm việc</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.workplacePrivacy}">PUBLIC</span>
+                        </div>
+                    </div>
+                    <div class="edit-mode" th:if="${isOwner}">
+                        <form th:action="@{/profile/update}" method="post">
+                            <input type="hidden" th:field="${profile.id}" name="id">
+                            <div class="mb-3">
+                                <label class="form-label">Trường học</label>
+                                <input type="text" class="form-control" th:field="${profile.school}" name="school">
+                                <select class="form-select mt-2" th:field="${profile.schoolPrivacy}" name="schoolPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nơi làm việc</label>
+                                <input type="text" class="form-control" th:field="${profile.workplace}" name="workplace">
+                                <select class="form-select mt-2" th:field="${profile.workplacePrivacy}" name="workplacePrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Skills & Achievements Tab -->
+                <div class="tab-pane fade" id="skills" role="tabpanel">
+                    <div class="view-mode active">
+                        <div class="info-item" th:if="${profile.skills != null && profile.skillsPrivacy == 'PUBLIC'}">
+                            <i class="fas fa-star"></i>
+                            <span th:text="${profile.skills}">Kỹ năng</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.skillsPrivacy}">PUBLIC</span>
+                        </div>
+                        <div class="info-item" th:if="${profile.awards != null && profile.awardsPrivacy == 'PUBLIC'}">
+                            <i class="fas fa-trophy"></i>
+                            <span th:text="${profile.awards}">Giải thưởng</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.awardsPrivacy}">PUBLIC</span>
+                        </div>
+                        <div class="info-item" th:if="${profile.achievements != null && profile.achievementsPrivacy == 'PUBLIC'}">
+                            <i class="fas fa-medal"></i>
+                            <span th:text="${profile.achievements}">Thành tích</span>
+                            <span class="privacy-badge privacy-public" th:text="${profile.achievementsPrivacy}">PUBLIC</span>
+                        </div>
+                    </div>
+                    <div class="edit-mode" th:if="${isOwner}">
+                        <form th:action="@{/profile/update}" method="post">
+                            <input type="hidden" th:field="${profile.id}" name="id">
+                            <div class="mb-3">
+                                <label class="form-label">Kỹ năng</label>
+                                <textarea class="form-control" th:field="${profile.skills}" name="skills" rows="3" placeholder="Mỗi kỹ năng một dòng"></textarea>
+                                <select class="form-select mt-2" th:field="${profile.skillsPrivacy}" name="skillsPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Giải thưởng</label>
+                                <textarea class="form-control" th:field="${profile.awards}" name="awards" rows="3" placeholder="Mỗi giải thưởng một dòng"></textarea>
+                                <select class="form-select mt-2" th:field="${profile.awardsPrivacy}" name="awardsPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Thành tích</label>
+                                <textarea class="form-control" th:field="${profile.achievements}" name="achievements" rows="3" placeholder="Mỗi thành tích một dòng"></textarea>
+                                <select class="form-select mt-2" th:field="${profile.achievementsPrivacy}" name="achievementsPrivacy">
+                                    <option value="PUBLIC">Công khai</option>
+                                    <option value="PRIVATE">Chỉ mình tôi</option>
+                                    <option value="HIDDEN">Ẩn</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Lưu Thay Đổi</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Media Tab -->
+                <div class="tab-pane fade" id="media" role="tabpanel">
+                    <p class="text-muted">Thư viện ảnh và video sẽ được hiển thị ở đây</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Typing Animation
+        function typeText(element, text, speed = 50) {
+            let i = 0;
+            element.innerHTML = '';
+            const cursor = document.createElement('span');
+            cursor.className = 'typing-cursor';
+            
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML = text.substring(0, i + 1) + cursor.outerHTML;
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    element.innerHTML = text + cursor.outerHTML;
+                }
+            }
+            type();
+        }
+        
+        // Initialize typing animation for bio
+        const bioText = /*[[${profile.bio}]]*/ '';
+        if (bioText && document.getElementById('typingText')) {
+            typeText(document.getElementById('typingText'), bioText, 30);
+        }
+        
+        // Toggle Edit Mode
+        let editMode = false;
+        function toggleEditMode() {
+            editMode = !editMode;
+            const viewModes = document.querySelectorAll('.view-mode');
+            const editModes = document.querySelectorAll('.edit-mode');
+            
+            viewModes.forEach(mode => {
+                mode.classList.toggle('active', !editMode);
+            });
+            editModes.forEach(mode => {
+                mode.classList.toggle('active', editMode);
+            });
+        }
+        
+        // Preview Image
+        function previewImage(input, imageId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(imageId).src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Handle cover file change
+        document.getElementById('coverFile')?.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                document.getElementById('coverFileInput').files = e.target.files;
+                previewImage(e.target, 'coverImage');
+            }
+        });
+    </script>
+</body>
+</html>
+
